@@ -1,0 +1,34 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: #F5F0E8;
+  color: #1C1917;
+  font-family: 'DM Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+body { max-width: 430px; margin: 0 auto; min-height: 100vh; }
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
+.font-display { font-family: 'DM Serif Display', serif; }
+.font-display-i { font-family: 'DM Serif Display', serif; font-style: italic; }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.page-enter { animation: fadeUp 0.3s ease both; }
+
+@keyframes popIn { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
+.pop-in { animation: popIn 0.2s ease both; }
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #C4794A !important;
+  box-shadow: 0 0 0 3px rgba(196,121,74,0.1);
+}
