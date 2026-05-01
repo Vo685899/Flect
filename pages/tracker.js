@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/AuthContext';
 import BottomNav from '../components/BottomNav';
 import { Card, Button, Textarea, MoodPicker, MOOD_LABELS, MOOD_COLORS, ENERGY_COLOR, SLEEP_COLOR, WATER_COLOR } from '../components/UI';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 function EnergyPicker({ value, onChange }) {
   const labels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
@@ -20,18 +20,11 @@ function EnergyPicker({ value, onChange }) {
         {[1,2,3,4,5].map(l => (
           <button key={l} onClick={() => onChange(l)}
             className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl border-2 transition-all active:scale-95"
-            style={{
-              background: value >= l ? ENERGY_COLOR + '15' : 'white',
-              borderColor: value >= l ? ENERGY_COLOR : '#E8E0D0',
-            }}>
-            <svg width="14" height="14" viewBox="0 0 24 24"
-              fill={value >= l ? ENERGY_COLOR : '#E8E0D0'}>
+            style={{ background: value >= l ? ENERGY_COLOR+'15' : 'white', borderColor: value >= l ? ENERGY_COLOR : '#E8E0D0' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={value >= l ? ENERGY_COLOR : '#E8E0D0'}>
               <path d="M13 2L4.5 13.5H11L10 22L20.5 10H14L13 2Z"/>
             </svg>
-            <span className="text-[8px] font-bold"
-              style={{ color: value >= l ? ENERGY_COLOR : '#A8A29E' }}>
-              {l}
-            </span>
+            <span className="text-[8px] font-bold" style={{ color: value >= l ? ENERGY_COLOR : '#A8A29E' }}>{l}</span>
           </button>
         ))}
       </div>
@@ -148,7 +141,12 @@ export default function Tracker() {
   };
 
   const fetchHistory = async () => {
-    const { data } = await supabase.from('tracker_entries').select('*').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(7);
+    const { data } = await supabase
+      .from('tracker_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('entry_date', { ascending: false })
+      .limit(7);
     setHistory(data || []);
   };
 
@@ -163,6 +161,12 @@ export default function Tracker() {
   };
 
   const avg = key => history.length ? (history.reduce((s, e) => s + (e[key] || 0), 0) / history.length).toFixed(1) : '—';
+
+  // Build chart data with proper unique date labels
+  const chartData = [...history].reverse().map(e => ({
+    mood: e.mood || 0,
+    label: format(parseISO(e.entry_date), 'EEE d'), // e.g. "Tue 29" — unique even if same weekday
+  }));
 
   return (
     <div className="min-h-screen bg-cream pb-28 page-enter">
@@ -203,20 +207,28 @@ export default function Tracker() {
                 </div>
               ))}
             </div>
+
             <Card>
               <p className="text-[11px] font-semibold text-ink-3 uppercase tracking-widest mb-3">Mood this week</p>
               <div className="flex items-end gap-1.5 h-16">
-                {[...history].reverse().map((e, i) => {
-                  const h = Math.max(8, ((e.mood || 1) / 5) * 56);
-                  const color = MOOD_COLORS[(e.mood || 3) - 1];
+                {chartData.map((entry, i) => {
+                  const h = Math.max(8, ((entry.mood || 1) / 5) * 56);
+                  const color = MOOD_COLORS[(entry.mood || 3) - 1];
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full rounded-t-lg" style={{ height: `${h}px`, background: color, opacity: 0.8 }}/>
-                      <span className="text-[9px] text-ink-4">{format(new Date(e.entry_date), 'EEE').slice(0, 2)}</span>
+                      {/* Show date number only to avoid duplicate weekday names */}
+                      <span className="text-[9px] text-ink-4">{entry.label.split(' ')[1]}</span>
                     </div>
                   );
                 })}
               </div>
+              {/* Date range label */}
+              {chartData.length > 0 && (
+                <p className="text-[10px] text-ink-4 text-center mt-2">
+                  {chartData[0]?.label} — {chartData[chartData.length-1]?.label}
+                </p>
+              )}
             </Card>
           </>
         )}
