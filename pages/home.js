@@ -89,9 +89,24 @@ export default function Home() {
           <h1 className="font-display text-4xl text-ink leading-tight">
             Hello,<br/>{profile?.display_name?.split(' ')[0] || 'there'}.
           </h1>
-          <div className="bg-amber/20 border-2 border-amber/40 rounded-2xl px-4 py-2 text-center">
-            <div className="font-display text-2xl text-amber-700">{profile?.streak || 0}</div>
-            <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">day streak</div>
+          <div className="flex flex-col items-end gap-2">
+            {/* Streak */}
+            <div className="bg-amber/20 border-2 border-amber/40 rounded-2xl px-4 py-2 text-center">
+              <div className="font-display text-2xl text-amber-700">{profile?.streak || 0}</div>
+              <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">day streak</div>
+            </div>
+            {/* Today's mood pill — only shows if mood has been set */}
+            {mood !== null && (
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 text-xs font-semibold"
+                style={{
+                  borderColor: MOOD_COLORS[mood],
+                  background: MOOD_COLORS[mood] + '18',
+                  color: MOOD_COLORS[mood],
+                }}>
+                <div className="w-2 h-2 rounded-full" style={{ background: MOOD_COLORS[mood] }}/>
+                {MOOD_LABELS[mood]}
+              </div>
+            )}
           </div>
         </div>
       </div>

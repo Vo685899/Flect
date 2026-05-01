@@ -14,20 +14,27 @@ html, body {
   overscroll-behavior: none;
 }
 
-body { max-width: 430px; margin: 0 auto; min-height: 100vh; }
+body {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  /* Extra bottom padding so content never hides behind fixed nav */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+
 ::-webkit-scrollbar { display: none; }
 * { -ms-overflow-style: none; scrollbar-width: none; }
 
 .font-display { font-family: 'DM Serif Display', serif; }
 .font-display-i { font-family: 'DM Serif Display', serif; font-style: italic; }
 
-@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .page-enter { animation: fadeUp 0.3s ease both; }
 
-@keyframes popIn { from { opacity:0; transform:scale(0.94); } to { opacity:1; transform:scale(1); } }
-.pop-in { animation: popIn 0.2s ease both; }
-
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: #C4794A !important;
   box-shadow: 0 0 0 3px rgba(196,121,74,0.1);
