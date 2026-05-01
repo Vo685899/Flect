@@ -31,12 +31,44 @@ export default function Home() {
       const { data: r } = await supabase.from('responses').select('*').eq('user_id', user.id).eq('prompt_id', p.id).single();
       if (r) {
         setTodayResponse(r);
-        setMood(r.mood_tag - 1);
         setCaption(r.caption || '');
         if (r.media_url) setMediaPreview(r.media_url);
       }
     }
+    // Load mood from tracker (single source of truth)
+    const { data: tracker } = await supabase
+      .from('tracker_entries')
+      .select('mood')
+      .eq('user_id', user.id)
+      .eq('entry_date', today)
+      .single();
+    if (tracker?.mood) setMood(tracker.mood - 1);
     setPageLoading(false);
+  };
+
+  // Save mood to tracker entry so it syncs with Tracker page
+  const saveMoodToTracker = async (moodIndex) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const { data: existing } = await supabase
+      .from('tracker_entries')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('entry_date', today)
+      .single();
+
+    if (existing) {
+      await supabase.from('tracker_entries')
+        .update({ mood: moodIndex + 1 })
+        .eq('id', existing.id);
+    } else {
+      await supabase.from('tracker_entries')
+        .insert({ user_id: user.id, entry_date: today, mood: moodIndex + 1 });
+    }
+  };
+
+  const handleMoodSelect = (moodIndex) => {
+    setMood(moodIndex);
+    saveMoodToTracker(moodIndex);
   };
 
   const handleFile = (e) => {
@@ -82,7 +114,7 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-cream pb-28 page-enter">
+    <div className="min-h-screen bg-cream page-enter">
       <div className="px-5 pt-14 pb-5">
         <p className="font-display-i text-coral text-sm mb-1">{format(new Date(), 'EEEE, MMMM d')}</p>
         <div className="flex justify-between items-end">
@@ -95,18 +127,7 @@ export default function Home() {
               <div className="font-display text-2xl text-amber-700">{profile?.streak || 0}</div>
               <div className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">day streak</div>
             </div>
-            {/* Today's mood pill — only shows if mood has been set */}
-            {mood !== null && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-2 text-xs font-semibold"
-                style={{
-                  borderColor: MOOD_COLORS[mood],
-                  background: MOOD_COLORS[mood] + '18',
-                  color: MOOD_COLORS[mood],
-                }}>
-                <div className="w-2 h-2 rounded-full" style={{ background: MOOD_COLORS[mood] }}/>
-                {MOOD_LABELS[mood]}
-              </div>
-            )}
+
           </div>
         </div>
       </div>
@@ -194,7 +215,7 @@ export default function Home() {
 
             <Card>
               <p className="text-[11px] font-semibold text-ink-3 uppercase tracking-widest mb-3">How are you feeling?</p>
-              <MoodPicker value={mood} onChange={setMood}/>
+              <MoodPicker value={mood} onChange={handleMoodSelect}/>
             </Card>
 
             <Textarea placeholder="Write a note about this moment... (optional)" value={caption} onChange={e => setCaption(e.target.value)} rows={2}/>

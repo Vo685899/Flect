@@ -15,55 +15,34 @@ const tabs = [
 export default function BottomNav() {
   const { pathname } = useRouter();
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex justify-center"
-      style={{ maxWidth: '100vw' }}
-    >
-      <div
-        className="w-full"
-        style={{
-          maxWidth: 430,
-          background: 'rgba(245,240,232,0.97)',
-          borderTop: '2px solid #E8E0D0',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
-        }}
-      >
-        <div className="flex items-center pt-3 pb-1">
-          {tabs.map(({ href, label, icon }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className="flex-1 flex flex-col items-center gap-1 py-1"
-              >
-                <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center transition-all"
-                  style={{ background: active ? '#C4794A' : 'transparent' }}
-                >
-                  <svg
-                    width="20" height="20" viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={active ? '#F5F0E8' : '#A8A29E'}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    {icon}
-                  </svg>
-                </div>
-                <span
-                  className="text-[10px] font-semibold transition-colors"
-                  style={{ color: active ? '#C4794A' : '#A8A29E' }}
-                >
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
-        </div>
+    <>
+      <div style={{ height: 90 }} />
+      <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:9999, display:'flex', justifyContent:'center', pointerEvents:'none' }}>
+        <nav style={{
+          width:'100%', maxWidth:430,
+          background:'rgba(245,240,232,0.97)',
+          borderTop:'2px solid #E8E0D0',
+          backdropFilter:'blur(20px)',
+          WebkitBackdropFilter:'blur(20px)',
+          paddingBottom:'max(12px, env(safe-area-inset-bottom))',
+          paddingTop:10,
+          pointerEvents:'all',
+        }}>
+          <div style={{ display:'flex', alignItems:'center' }}>
+            {tabs.map(({ href, label, icon }) => {
+              const active = pathname === href;
+              return (
+                <Link key={href} href={href} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3, paddingBottom:4, textDecoration:'none' }}>
+                  <div style={{ width:36, height:36, borderRadius:12, display:'flex', alignItems:'center', justifyContent:'center', background: active ? '#C4794A' : 'transparent', transition:'background 0.2s' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={active ? '#F5F0E8' : '#A8A29E'} strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
+                  </div>
+                  <span style={{ fontSize:10, fontWeight:600, color: active ? '#C4794A' : '#A8A29E', fontFamily:'DM Sans, sans-serif' }}>{label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </div>
-    </nav>
+    </>
   );
 }
