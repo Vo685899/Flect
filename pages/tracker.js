@@ -141,12 +141,16 @@ export default function Tracker() {
   };
 
   const fetchHistory = async () => {
+    // Get strictly the last 7 calendar days
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const sevenDaysAgo = format(new Date(Date.now() - 6 * 86400000), 'yyyy-MM-dd');
     const { data } = await supabase
       .from('tracker_entries')
       .select('*')
       .eq('user_id', user.id)
-      .order('entry_date', { ascending: false })
-      .limit(7);
+      .gte('entry_date', sevenDaysAgo)
+      .lte('entry_date', today)
+      .order('entry_date', { ascending: true });
     setHistory(data || []);
   };
 
@@ -162,11 +166,17 @@ export default function Tracker() {
 
   const avg = key => history.length ? (history.reduce((s, e) => s + (e[key] || 0), 0) / history.length).toFixed(1) : '—';
 
-  // Build chart data with proper unique date labels
-  const chartData = [...history].reverse().map(e => ({
-    mood: e.mood || 0,
-    label: format(parseISO(e.entry_date), 'EEE d'), // e.g. "Tue 29" — unique even if same weekday
-  }));
+  // Build 7-day chart — one slot per day, empty if no entry
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const date = format(new Date(Date.now() - (6 - i) * 86400000), 'yyyy-MM-dd');
+    const entry = history.find(e => e.entry_date === date);
+    return {
+      date,
+      mood: entry?.mood || 0,
+      label: format(new Date(Date.now() - (6 - i) * 86400000), 'EEE').slice(0, 2),
+      hasEntry: !!entry,
+    };
+  });
 
   return (
     <div className="min-h-screen bg-cream pb-28 page-enter">
@@ -212,23 +222,23 @@ export default function Tracker() {
               <p className="text-[11px] font-semibold text-ink-3 uppercase tracking-widest mb-3">Mood this week</p>
               <div className="flex items-end gap-1.5 h-16">
                 {chartData.map((entry, i) => {
-                  const h = Math.max(8, ((entry.mood || 1) / 5) * 56);
-                  const color = MOOD_COLORS[(entry.mood || 3) - 1];
+                  const h = entry.hasEntry ? Math.max(8, (entry.mood / 5) * 56) : 0;
+                  const color = entry.hasEntry ? MOOD_COLORS[(entry.mood || 3) - 1] : '#E8E0D0';
+                  const isToday = i === 6;
                   return (
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="w-full rounded-t-lg" style={{ height: `${h}px`, background: color, opacity: 0.8 }}/>
-                      {/* Show date number only to avoid duplicate weekday names */}
-                      <span className="text-[9px] text-ink-4">{entry.label.split(' ')[1]}</span>
+                      {entry.hasEntry ? (
+                        <div className="w-full rounded-t-lg" style={{ height: `${h}px`, background: color, opacity: 0.85 }}/>
+                      ) : (
+                        <div className="w-full rounded-t-lg" style={{ height: '4px', background: '#E8E0D0' }}/>
+                      )}
+                      <span className="text-[9px] font-semibold" style={{ color: isToday ? '#C4794A' : '#A8A29E' }}>
+                        {entry.label}
+                      </span>
                     </div>
                   );
                 })}
               </div>
-              {/* Date range label */}
-              {chartData.length > 0 && (
-                <p className="text-[10px] text-ink-4 text-center mt-2">
-                  {chartData[0]?.label} — {chartData[chartData.length-1]?.label}
-                </p>
-              )}
             </Card>
           </>
         )}
