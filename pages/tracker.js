@@ -161,6 +161,16 @@ export default function Tracker() {
     const entry = { user_id: user.id, entry_date: today, mood: mood + 1, energy, sleep_hours: sleepHours + sleepMinutes / 60, water_glasses: water, note: note.trim() || null };
     if (todayEntry) { await supabase.from('tracker_entries').update(entry).eq('id', todayEntry.id); }
     else { const { data } = await supabase.from('tracker_entries').insert(entry).select().single(); setTodayEntry(data); }
+
+    // Sync mood back to today's response if one exists
+    const { data: todayPrompt } = await supabase.from('prompts').select('id').eq('prompt_date', today).single();
+    if (todayPrompt) {
+      await supabase.from('responses')
+        .update({ mood_tag: mood + 1 })
+        .eq('user_id', user.id)
+        .eq('prompt_id', todayPrompt.id);
+    }
+
     await fetchHistory(); setSaved(true); setSaving(false);
   };
 
