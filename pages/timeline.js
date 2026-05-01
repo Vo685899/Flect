@@ -97,7 +97,7 @@ export default function Timeline() {
         prompt_id: selected.prompt.id,
         media_url: publicUrl,
         media_type: mediaType,
-        mood_tag: 3,
+        mood_tag: null,
         submitted_at: new Date(selected.date + 'T12:00:00').toISOString(),
       }).select('*, prompts(text, category, prompt_date)').single();
       if (newR) {
@@ -181,7 +181,7 @@ export default function Timeline() {
                   style={{
                     
                     background: response?.media_url ? 'transparent' : 'white',
-                    border: `2px solid ${response ? MOOD_COLORS[(response.mood_tag||3)-1] : today ? '#C4794A60' : '#E8E0D0'}`,
+                    border: `2px solid ${response && response.mood_tag ? MOOD_COLORS[response.mood_tag-1] : today ? '#C4794A60' : '#E8E0D0'}`,
                     opacity: !isClickable && !today ? 0.5 : 1,
                   }}
                 >
@@ -239,10 +239,12 @@ export default function Timeline() {
                         <p className="text-ink text-sm font-medium leading-tight line-clamp-1 font-display">"{r.prompts.text}"</p>
                       )}
                       {r.caption && <p className="text-ink-3 text-xs mt-0.5 line-clamp-1">{r.caption}</p>}
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="w-2 h-2 rounded-full" style={{ background: MOOD_COLORS[moodIdx] }}/>
-                        <span className="text-[10px] text-ink-4">{MOOD_LABELS[moodIdx]}</span>
-                      </div>
+                      {r.mood_tag && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <div className="w-2 h-2 rounded-full" style={{ background: MOOD_COLORS[(r.mood_tag||3)-1] }}/>
+                          <span className="text-[10px] text-ink-4">{MOOD_LABELS[(r.mood_tag||3)-1]}</span>
+                        </div>
+                      )}
                     </div>
                   </button>
                 );
@@ -280,10 +282,10 @@ export default function Timeline() {
           <div className="flex-1 p-5">
             <p className="font-display text-xl text-ink mb-1">{format(parseISO(selected.date), 'EEEE, MMMM d, yyyy')}</p>
 
-            {selected.response && (
+            {selected.response && selected.response.mood_tag && (
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-3 h-3 rounded-full" style={{ background: MOOD_COLORS[(selected.response.mood_tag||3)-1] }}/>
-                <span className="text-sm text-ink-3">{MOOD_LABELS[(selected.response.mood_tag||3)-1]}</span>
+                <div className="w-3 h-3 rounded-full" style={{ background: MOOD_COLORS[selected.response.mood_tag-1] }}/>
+                <span className="text-sm text-ink-3">{MOOD_LABELS[selected.response.mood_tag-1]}</span>
                 <button onClick={() => toggleFavorite(selected.response.id, selected.response.is_favorite)}
                   className="ml-auto text-xl active:scale-90 transition-transform">
                   {selected.response.is_favorite ? '★' : '☆'}
