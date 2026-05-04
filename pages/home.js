@@ -18,7 +18,11 @@ export default function Home() {
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaPreview, setMediaPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showAuthCheck, setShowAuthCheck] = useState(false);
+  const [authAnswer, setAuthAnswer] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
+  const [showAuthCheck, setShowAuthCheck] = useState(false);
+  const [authAnswer, setAuthAnswer] = useState(null); // 'real' | 'curated' | null
 
   useEffect(() => { if (!loading && !user) router.replace('/login'); }, [user, loading]);
   useEffect(() => { if (user) load(); }, [user]);
@@ -103,6 +107,12 @@ export default function Home() {
       setTodayResponse(r);
     }
     setMediaFile(null); setSubmitting(false);
+    if (!todayResponse) setShowAuthCheck(true);
+  };
+
+  const handleAuthAnswer = (answer) => {
+    setAuthAnswer(answer);
+    setTimeout(() => setShowAuthCheck(false), 2500);
   };
 
   const cat = prompt ? (CATEGORY_META[prompt.category] || CATEGORY_META.mindfulness) : null;
@@ -152,12 +162,40 @@ export default function Home() {
         {prompt && (
           <>
             {todayResponse && (
-              <div className="bg-sage/10 border-2 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3" style={{ borderColor: '#7A9E7E60' }}>
-                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: MOOD_COLORS[todayResponse.mood_tag - 1] }}/>
+              <div className="bg-sage/10 border-2 rounded-2xl px-4 py-3 mb-3 flex items-center gap-3" style={{ borderColor: '#7A9E7E60' }}>
+                <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: mood !== null ? MOOD_COLORS[mood] : MOOD_COLORS[2] }}/>
                 <div>
                   <p className="text-ink text-sm font-semibold">Reflected today</p>
                   <p className="text-ink-4 text-xs">You can update your photo or mood below</p>
                 </div>
+              </div>
+            )}
+
+            {/* Authenticity nudge — appears softly after first submit */}
+            {showAuthCheck && authAnswer === null && (
+              <div className="mb-3 rounded-2xl border-2 border-paper bg-white px-4 py-3 page-enter">
+                <p className="text-center mb-3" style={{ fontFamily:'DM Serif Display,serif', fontStyle:'italic', fontSize:13, color:'#78716C' }}>
+                  Did this feel like you, or like a version of you?
+                </p>
+                <div className="flex gap-2">
+                  <button onClick={() => handleAuthAnswer('real')}
+                    className="flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all active:scale-95"
+                    style={{ borderColor:'#7A9E7E', color:'#7A9E7E', background:'rgba(122,158,126,0.08)' }}>
+                    Felt real
+                  </button>
+                  <button onClick={() => handleAuthAnswer('curated')}
+                    className="flex-1 py-2 rounded-xl border-2 text-xs font-semibold transition-all active:scale-95"
+                    style={{ borderColor:'#C4794A', color:'#C4794A', background:'rgba(196,121,74,0.08)' }}>
+                    Felt curated
+                  </button>
+                </div>
+              </div>
+            )}
+            {showAuthCheck && authAnswer !== null && (
+              <div className="mb-3 rounded-2xl border-2 border-paper bg-white px-4 py-2.5 text-center page-enter">
+                <p style={{ fontFamily:'DM Serif Display,serif', fontStyle:'italic', fontSize:12, color:'#78716C' }}>
+                  {authAnswer === 'real' ? "That's what this space is for." : 'Worth noticing.'}
+                </p>
               </div>
             )}
 
