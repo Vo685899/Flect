@@ -21,8 +21,6 @@ export default function Home() {
   const [showAuthCheck, setShowAuthCheck] = useState(false);
   const [authAnswer, setAuthAnswer] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
-  const [showAuthCheck, setShowAuthCheck] = useState(false);
-  const [authAnswer, setAuthAnswer] = useState(null); // 'real' | 'curated' | null
 
   useEffect(() => { if (!loading && !user) router.replace('/login'); }, [user, loading]);
   useEffect(() => { if (user) load(); }, [user]);
